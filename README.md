@@ -19,6 +19,22 @@ Frequency dividers (also called flip-flops) are implemented as goroutine and sha
 
 </br>
 
+
+## Usage
+``` bash
+go run main.go -durationSeconds 3
+```
+
+### Output example
+
+```
+Starting
+=> 2022-02-13 23:37:30.488941189 +0100 CET m=+1.001053330
+=> 2022-02-13 23:37:31.488604518 +0100 CET m=+2.000716655
+=> 2022-02-13 23:37:32.488471204 +0100 CET m=+3.000583350
+Exiting
+```
+
 ## Note
 Obviously, this project has no use beside explanation / training.
 
