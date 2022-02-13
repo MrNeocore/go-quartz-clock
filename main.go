@@ -1,71 +1,29 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"time"
+
+	"github.com/MrNeocore/go-quartz-clock/clock"
+	"github.com/MrNeocore/go-quartz-clock/config"
 )
 
-const INPUT_SIGNAL_FREQUENCY = 62500 * time.Microsecond
-const FLIP_FLOPS_COUNT = 4
-const RUN_DURATION = 10 * time.Second
+func parseCli() (duration time.Duration) {
+	durationPtr := flag.Int("durationSeconds", 5, "Number of seconds to run the quartz clock")
 
-func ntabs(count int) string {
-	out := ""
+	flag.Parse()
 
-	for i := 0; i < count; i++ {
-		out += "\t"
-	}
-
-	return out
-}
-
-func firstFlipFlop(input <-chan time.Time, output chan time.Time) {
-	for {
-		<-input
-		fmt.Printf("[S] Tick\n") // Log the original signal
-		<-input
-		fmt.Printf("[S] Tick\n")
-		output <- time.Now()
-		fmt.Printf("\t[0] Tick\n")
-	}
-}
-
-func flipFlop(i int, input chan time.Time, output chan time.Time) {
-	for {
-		<-input
-		<-input
-		output <- time.Now()
-		tabs := ntabs(i + 1)
-		fmt.Printf("%s[%d] Tick\n", tabs, i)
-	}
-}
-
-func consumeOutputSignal(input chan time.Time) {
-	for {
-		<-input
-	}
+	return time.Duration(*durationPtr)
 }
 
 func main() {
-	var chans [FLIP_FLOPS_COUNT]chan time.Time
+	duration := parseCli()
 
-	for i := range chans {
-		chans[i] = make(chan time.Time)
-	}
+	fmt.Println("Starting")
 
-	// Input signal
-	signal := time.Tick(INPUT_SIGNAL_FREQUENCY)
+	inputSignal := time.NewTicker(config.INPUT_SIGNAL_FREQUENCY).C
+	clock.RunClock(inputSignal, duration)
 
-	// First flip-flop
-	go firstFlipFlop(signal, chans[0])
-
-	// Other flip-flops
-	for i := 0; i < FLIP_FLOPS_COUNT-1; i++ {
-		go flipFlop(i+1, chans[i], chans[i+1])
-	}
-
-	// Consume output signal
-	go consumeOutputSignal(chans[FLIP_FLOPS_COUNT-1])
-
-	time.Sleep(RUN_DURATION)
+	fmt.Println("Exiting")
 }
